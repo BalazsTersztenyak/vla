@@ -13,8 +13,8 @@ dependencies = [
 
 [project.optional-dependencies]
 vla = [
-    "transformers>=4.40.0",
-    "timm",
+    "transformers>=4.46.0,<5.0",
+    "timm>=0.9.10,<1.0",
     "tokenizers",
     "torch>=2.0.0",
 ]
@@ -32,6 +32,15 @@ markers = [
     "integration: requires SAPIEN/ManiSkill",
 ]
 testpaths = ["tests"]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
 
 [build-system]
 requires = ["hatchling"]

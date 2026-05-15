@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import os
+import sys
 
 import numpy as np
 import pytest
 from PIL import Image
 
-# Force headless rendering before any SAPIEN import
-os.environ.setdefault("SAPIEN_RENDERER", "egl")
+# EGL is Linux-only; on Windows SAPIEN uses Vulkan by default
+if sys.platform != "win32":
+    os.environ.setdefault("SAPIEN_RENDERER", "egl")
 
 
 @pytest.fixture(scope="session")
@@ -25,6 +27,7 @@ def pick_cube_env():
         control_mode="pd_joint_delta_pos",
         render_mode="rgb_array",
         robot_uids="ur10",
+        render_backend="cpu",
     )
     yield env
     env.close()

@@ -18,18 +18,15 @@ Run [OpenVLA-7B](https://huggingface.co/openvla/openvla-7b) (or any custom polic
 ## Installation
 
 ```bash
-# Clone the repo (includes the UR ROS2 description submodule)
-git clone --recurse-submodules https://github.com/BalazsTersztenyak/vla.git
+# Clone the repo
+git clone https://github.com/BalazsTersztenyak/vla.git
 cd vla
 
-# Install core dependencies
+# Install core dependencies (random policy, simulation)
 uv sync
 
-# Install the vla package in editable mode
-uv pip install -e .
-
-# If you want to run OpenVLA (GPU required)
-uv pip install -e ".[vla]"
+# If you want to run OpenVLA (GPU required, downloads ~14 GB model on first run)
+uv sync --extra vla
 ```
 
 ---
@@ -44,7 +41,14 @@ import vla.env.pick_cube   # registers the PickCube-UR10-v1 env
 from vla.policy.random_policy import RandomPolicy
 from vla.runner import run_episode, save_video
 
-env = gymnasium.make("PickCube-UR10-v1", render_mode="rgb_array")
+env = gymnasium.make(
+    "PickCube-UR10-v1",
+    obs_mode="rgb",
+    control_mode="pd_joint_delta_pos",
+    render_mode="rgb_array",
+    robot_uids="ur10",
+    render_backend="cpu",
+)
 policy = RandomPolicy(seed=42)
 
 result = run_episode(env, policy, instruction="pick up the cube", max_steps=80, record_video=True)
@@ -64,8 +68,15 @@ import vla.env.pick_cube
 from vla.policy.openvla import OpenVLAPolicy
 from vla.runner import run_episode, save_video
 
-env = gymnasium.make("PickCube-UR10-v1", render_mode="rgb_array")
-policy = OpenVLAPolicy(device="cuda:0")   # downloads ~14 GB model on first run
+env = gymnasium.make(
+    "PickCube-UR10-v1",
+    obs_mode="rgb",
+    control_mode="pd_joint_delta_pos",
+    render_mode="rgb_array",
+    robot_uids="ur10",
+    render_backend="cpu",
+)
+policy = OpenVLAPolicy(device="cuda:0")
 
 result = run_episode(env, policy, instruction="pick up the cube", max_steps=80, record_video=True)
 print(f"Success: {result.success}  Reward: {result.total_reward:.3f}")
@@ -142,24 +153,14 @@ The action adapter (`vla.action.adapt_action`) strips the gripper dimension from
 # Unit tests — fast, no GPU or SAPIEN
 uv run pytest tests/unit
 
-# Integration tests — requires ManiSkill / SAPIEN installed
-uv run pytest tests/integration -m integration
+# Integration tests — requires ManiSkill / SAPIEN (no GPU needed)
+uv run pytest tests/integration -m "not gpu"
 
 # OpenVLA episode test — requires CUDA GPU (~16 GB VRAM) and downloaded model
 uv run pytest tests/integration -m gpu
 
 # Everything
 uv run pytest
-```
-
----
-
-## Headless / Server Rendering
-
-ManiSkill uses the EGL renderer by default when no display is present. If you see rendering errors, set:
-
-```bash
-export SAPIEN_RENDERER=egl
 ```
 
 ---

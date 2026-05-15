@@ -22,7 +22,9 @@ class OpenVLAPolicy:
         self.device = device
         mid = model_id or self.MODEL_ID
 
+        print(f"Loading OpenVLA processor from {mid} …")
         self.processor = AutoProcessor.from_pretrained(mid, trust_remote_code=True)
+        print(f"Loading OpenVLA model from {mid} (this may take a minute) …")
         self.model = AutoModelForVision2Seq.from_pretrained(
             mid,
             attn_implementation="eager",
@@ -31,6 +33,16 @@ class OpenVLAPolicy:
             trust_remote_code=True,
         ).to(device)
         self.model.eval()
+
+        print("Warming up JIT / CUDA kernels (first call compiles TorchScript) …")
+        _dummy = torch.zeros(1, 3, 224, 224, dtype=torch.bfloat16, device=device)
+        _dummy_inputs = self.processor(
+            "In: What action should the robot take to warm up?\nOut:",
+            Image.fromarray((_dummy[0].permute(1, 2, 0).cpu().float().numpy() * 255).astype("uint8")),
+        ).to(device, dtype=torch.bfloat16)
+        with torch.no_grad():
+            self.model.predict_action(**_dummy_inputs, unnorm_key=self.unnorm_key, do_sample=False)
+        print("OpenVLA model ready.")
         self._torch = torch
 
     def predict(self, image: Image.Image, instruction: str) -> np.ndarray:
