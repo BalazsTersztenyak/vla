@@ -17,16 +17,21 @@ Run [OpenVLA-7B](https://huggingface.co/openvla/openvla-7b) (or any custom polic
 
 ## Installation
 
+**With uv (recommended):**
 ```bash
-# Clone the repo
 git clone https://github.com/BalazsTersztenyak/vla.git
 cd vla
 
-# Install core dependencies (random policy, simulation)
-uv sync
+uv sync                  # core deps (random policy, simulation)
+uv sync --extra vla      # add OpenVLA (GPU required, ~14 GB model download)
+```
 
-# If you want to run OpenVLA (GPU required, downloads ~14 GB model on first run)
-uv sync --extra vla
+**With pip:**
+```bash
+git clone https://github.com/BalazsTersztenyak/vla.git
+cd vla
+
+pip install -r requirements.txt
 ```
 
 ---
