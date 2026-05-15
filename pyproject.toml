@@ -1,0 +1,38 @@
+[project]
+name = "vla"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "mani-skill",
+    "numpy",
+    "pillow",
+    "scipy",
+    "gymnasium",
+    "imageio[ffmpeg]",
+]
+
+[project.optional-dependencies]
+vla = [
+    "transformers>=4.40.0",
+    "timm",
+    "tokenizers",
+    "torch>=2.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "gpu: requires CUDA GPU and the VLA model",
+    "slow: long-running test",
+    "integration: requires SAPIEN/ManiSkill",
+]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
